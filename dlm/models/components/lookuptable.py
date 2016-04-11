@@ -1,21 +1,23 @@
 import sys
-import theano
-import theano.tensor as T
+#import theano
+#import theano.tensor as T
 import numpy
 import dlm.utils as U
 import dlm.io.logging as L
 from dlm.io.vocabReader import VocabManager
 from dlm.io.w2vEmbReader import W2VEmbReader
+import dlm.backend.nn_wrapper as K
 
 class LookupTable():
-	
+
 	def __init__(self, rng, input, vocab_size, emb_dim, emb_matrix=None, concat=True, emb_path=None, vocab_path=None, add_weights=False):
-		
+
 		L.info("Lookup Table layer, #words: %s, #dims: %s" % (U.red(vocab_size), U.red(emb_dim)))
 
 		self.input = input
-		
-		self.emb_matrix = emb_matrix
+		L.info("Input " + str(input))
+                L.info("Add weightes " + str(add_weights))
+                self.emb_matrix = emb_matrix
 
 		if self.emb_matrix is None:
 			self.emb_matrix = numpy.asarray(
@@ -24,32 +26,35 @@ class LookupTable():
 					high=0.01, #high=1,
 					size=(vocab_size, emb_dim)
 				),
-				dtype=theano.config.floatX
+				dtype=K._FLOATX
 			)
-		
+
 		if emb_path:
 			U.xassert(vocab_path, 'When emb_path is given, vocab must be given too.')
 			self.initialize(emb_path, vocab_path)
-		
-		self.embeddings = theano.shared(value=self.emb_matrix, name='embeddings', borrow=True)
-		
+
+		#self.embeddings = theano.shared(value=self.emb_matrix, name='embeddings', borrow=True)
+		self.embeddings = K.variable(self.emb_matrix, name='embeddings')
+
+
 		if add_weights:
-			weights_vec = numpy.ones(vocab_size, dtype=theano.config.floatX)
-			self.weights = theano.shared(value=weights_vec, name='word_weights', borrow=True)
-			
+			weights_vec = numpy.ones(vocab_size, dtype=K._FLOATX)
+			#self.weights = theano.shared(value=weights_vec, name='word_weights', borrow=True)
+			self.weights = K.variable(weights_vec, name='word_weights')
+
 			# Check if the speed can be improved
 			self.output = (self.weights.dimshuffle(0, 'x') * self.embeddings)[input]
 			#self.output = self.weights.dimshuffle(0, 'x')[input] * self.embeddings[input]
 			#self.output = self.weights[input].dimshuffle(0, 'x') * self.embeddings[input]
-			
+
 			self.params = [self.embeddings, self.weights]
 		else:
 			self.output = self.embeddings[input]
 			self.params = [self.embeddings]
-		
+
 		if concat:
 			self.output = self.output.reshape((input.shape[0], emb_dim * input.shape[1]))
-	
+
 	def initialize(self, emb_path, vocab_path):
 		L.info('Initializing lookup table')
 		vm = VocabManager(vocab_path)

@@ -1,6 +1,6 @@
 from __future__ import division
-import theano
-import theano.tensor as T
+#import theano
+#import theano.tensor as T
 from dlm import eval
 import dlm.utils as U
 import dlm.io.logging as L
@@ -19,7 +19,7 @@ def train(classifier, criterion, args, trainset, devset, testset=None):
 
 	# Get number of minibatches from the training file
 	num_train_batches = trainset.get_num_batches()
-	
+
 	# Initialize the trainer object
 	trainer = Trainer(classifier, criterion, args.learning_rate, trainset, clip_threshold=args.clip_threshold)
 
@@ -34,12 +34,12 @@ def train(classifier, criterion, args, trainset, devset, testset=None):
 	start_time = time.time()
 	verbose_freq = 1000 # minibatches
 	epoch = 0
-	
+
 	hook.evaluate(0)
-	
+
 	a = time.time()
 	classifier.save_model(args.out_dir + '/model.epoch_0.gz', zipped=True)
-	
+
 	while (epoch < args.num_epochs):
 		epoch = epoch + 1
 		L.info("Epoch: " + U.red(epoch))
@@ -49,7 +49,7 @@ def train(classifier, criterion, args, trainset, devset, testset=None):
 			# Makes an update of the paramters after processing the minibatch
 			minibatch_avg_cost, gparams = trainer.step(minibatch_index)
 			minibatch_avg_cost_sum += minibatch_avg_cost
-			
+
 			if minibatch_index % verbose_freq == 0:
 				grad_norms = [np.linalg.norm(gparam) for gparam in gparams]
 				L.info(U.blue("[" + time.ctime() + "] ") + '%i/%i, cost=%.2f, lr=%f'
@@ -114,7 +114,7 @@ class Hook:
 		if self.test_eval:
 			L.info(('TEST => Error=%.2f%%, PPL=' + U.b_yellow('%.2f @ %i') + ' (' + U.b_red('%.2f @ %i') + ')')
 				% (test_error * 100., test_perplexity, curr_iter, self.best_test_perplexity, self.best_iter))
-		
+
 		return dev_perplexity
 
 

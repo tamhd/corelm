@@ -1,12 +1,12 @@
 import subprocess as sub
 import sys
 import os, errno
-	
+
 #-----------------------------------------------------------------------------------------------------------#
 
 def __shell(command):
 	return sub.Popen(command, shell=True, stdout=sub.PIPE, stderr=sub.PIPE)
-	
+
 # Currently the best
 def capture(command):
 	out, err, code = capture_all(command)
@@ -18,12 +18,12 @@ def capture_all(command):
 	p = __shell(command)
 	output, err = p.communicate()
 	return output, err, p.returncode
-	
+
 # Better to avoid
 def capture_no_assert(command):
 	p = __shell(command)
 	return p.stdout.read()
-	
+
 # Not well-tested, but should be good
 def capture_output(command):
 	try:
@@ -38,9 +38,9 @@ def capture_output(command):
 # Dummy object for holding other objects
 class Object(object):
     pass
-	
+
 #-----------------------------------------------------------------------------------------------------------#
-	
+
 import re
 
 class BColors:
@@ -74,7 +74,7 @@ class BColors:
 	BRED = BOLD + '\033[31m'
 	BMAGENTA = BOLD + '\033[35m'
 	BBLACK = BOLD + '\033[30m'
-	
+
 	@staticmethod
 	def cleared(s):
 		return re.sub("\033\[[0-9][0-9]?m", "", s)
@@ -96,9 +96,9 @@ def green(message):
 
 def b_green(message):
 	return BColors.BGREEN + str(message) + BColors.ENDC
-	
+
 #-----------------------------------------------------------------------------------------------------------#
-	
+
 def xassert(condition, message):
 	if not condition:
 		import dlm.io.logging as L
@@ -107,10 +107,10 @@ def xassert(condition, message):
 def assert_value(value, valid_values):
 	assert type(valid_values) == list, "valid_values must be a list, given: " + str(type(valid_values))
 	assert value in valid_values, "Invalid value: " + str(value) + " is not in " + str(valid_values)
-	
+
 def version():
 	return '.'.join(map(str, sys.version_info)[0:3])
-	
+
 #-----------------------------------------------------------------------------------------------------------#
 
 def prepend_to_file(file_name, text):
@@ -118,7 +118,7 @@ def prepend_to_file(file_name, text):
 		old = f.read()
 		f.seek(0)
 		f.write(text + old)
-	
+
 def append_to_file(file_name, text):
 	with open(file_name, "a") as f:
 		f.write(text)
@@ -177,19 +177,29 @@ def set_theano_device(device, threads):
 	os.environ['THEANO_FLAGS'] += ',mode=FAST_RUN'
 	os.environ['THEANO_FLAGS'] += ',nvcc.fastmath=False' 			# True: makes div and sqrt faster at the cost of precision, and possible bugs
 	#os.environ['THEANO_FLAGS'] += ',optimizer_including=cudnn' 	# Comment out if CUDNN is not available
+
+        # change theano to wrapper
 	try:
-		import theano
+		#import theano
+                import backend.nn_wrapper as K
 	except EnvironmentError:
 		L.exception()
 	global logger
-	if theano.config.device == "gpu":
-		L.info(
-			"Device: " + theano.config.device.upper() + " "
-			+ str(theano.sandbox.cuda.active_device_number())
-			+ " (" + str(theano.sandbox.cuda.active_device_name()) + ")"
-		)
-	else:
-		L.info("Device: " + theano.config.device.upper())
+	#if theano.config.device == "gpu":
+	#	L.info(
+	#		"Device: " + theano.config.device.upper() + " "
+	#		+ str(theano.sandbox.cuda.active_device_number())
+	#		+ " (" + str(theano.sandbox.cuda.active_device_name()) + ")"
+	#	)
+	#else:
+	#	L.info("Device: " + theano.config.device.upper())
+
+        #global K
+        try:
+            K.set_platform('tensorflow') # theano is working
+        except:
+            print >> sys.stderr, "Unexpected error:", sys.exc_info()
+            raise TypeError("Cannot set the platform")
 
 #-----------------------------------------------------------------------------------------------------------#
 
