@@ -8,6 +8,9 @@ from common import _FLOATX, _EPSILON
 
 PLF = None # platform
 
+def get_platform():
+    return PLF
+
 def set_platform(platform):
   assert platform in ('theano', 'tensorflow'), 'The platform is neither tensorflow nor theano!'
   KT = None
@@ -15,6 +18,8 @@ def set_platform(platform):
     import theano_backend_lite as KT
   else:
     import tensorflow_backend_lite as KT
+    #sess = KT.tf.Session()
+    #KT.set_session(sess)
   global PLF
   PLF = KT
 

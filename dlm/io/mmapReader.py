@@ -16,8 +16,8 @@ class MemMapReader():
 	def __init__(self, dataset_path, batch_size=500, instance_weights_path=None):
 
 		L.info("Initializing dataset from: " + os.path.abspath(dataset_path))
-
 		# Reading parameters from the mmap file
+                print K.get_platform()
 		fp = np.memmap(dataset_path, dtype='int32', mode='r')
 		self.num_samples = fp[0]
 		self.ngram = fp[1]
@@ -35,7 +35,11 @@ class MemMapReader():
 		#self.shared_x = T.cast(theano.shared(x, borrow=True), 'int32')
 		#self.shared_y = T.cast(theano.shared(y, borrow=True), 'int32')
                 # What is T.cast :))
-                L.info("Initialize one variable")
+                L.info("Initialize a simple variable")
+                val = np.random.random((4, 2))
+                tmp = K.variable(val)
+
+                L.info("Initialize a real variable")
                 tmp = K.variable(x)
                 L.info("Initialize two casted variables")
                 self.shared_x = K.cast(K.variable(x), 'int32')

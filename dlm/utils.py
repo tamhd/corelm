@@ -197,6 +197,11 @@ def set_theano_device(device, threads):
         #global K
         try:
             K.set_platform('tensorflow') # theano is working
+            L.info("Creating a variable inside utils")
+            import numpy as np
+            val = np.random.random((4, 2))
+            tmp = K.variable(val)
+
         except:
             print >> sys.stderr, "Unexpected error:", sys.exc_info()
             raise TypeError("Cannot set the platform")
